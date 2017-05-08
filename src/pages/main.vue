@@ -33,10 +33,10 @@
     		testApi(_method){
     			const xhr = new xhres6({
     				method:_method,
-					url:'https://api.dokodm.com/',
+					url:'https://api.dokodm.com/index/Index/index',
     			});
     			xhr.then((_rpdata)=>{
-    				console.log(_rpdata);
+    				console.log(_rpdata.body);
     			})
     		}
     		
