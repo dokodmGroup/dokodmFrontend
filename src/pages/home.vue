@@ -28,16 +28,18 @@
     		},
 			uploadFile(_file){
 				const xhr = new xhres6;
+				xhr.withCredentials = true;
 				xhr.put('http://dev.yimentong.sj33333.com/index.php/v3/admin/Image',{
 					headers:{
 						'Content-Type':'multipart/form-data;'
 					},
 					data:_file
 				})
-				.then(function(_rpdata){
+				.then((_rpdata)=>{
 					console.dir(_rpdata);
 					const { headers, body, xhr_status, xhr} = _rpdata;
 					// body this is server response data;
+					this.$refs.files.value = '';
 				});
 			}
     	},
