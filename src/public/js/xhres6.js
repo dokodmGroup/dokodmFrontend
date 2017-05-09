@@ -19,13 +19,13 @@ class xhres6 {
 			resDataType:'', //response data type
 // 			return_xhr:false,
 			timeout:10000,
-			
+			withCredentials:false,
 // 			files:[],
 			outside_data:{}
 		}
 		
 		this.version = '1.0.7';
-		
+		this.xhr.withCredentials = this.d_options.withCredentials
 		this.xhr=new XMLHttpRequest();
 		
 		if(_options && typeof(_options) === 'object'){
