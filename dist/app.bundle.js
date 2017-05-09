@@ -8971,10 +8971,236 @@ function toComment(sourceMap) {
 
   return Vue$3;
 });
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(18)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(19)))
 
 /***/ }),
 /* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+// XMLHttpRequest with Promise and ES6 syntax
+// Author by AquirJan, wing.free0@gmail.com
+// create at 8-2-2016
+// last modify at 3-30-2017
+// version 1.0.7;
+// commit : fix sendDataType default type;
+
+var xhres6 = function () {
+	function xhres6(_options) {
+		_classCallCheck(this, xhres6);
+
+		this.d_options = {
+			method: "POST",
+			headers: {},
+			data: {},
+			sendDataType: 'raw', //xhr send data type
+			async: true,
+			url: '/',
+			resDataType: '', //response data type
+			// 			return_xhr:false,
+			timeout: 10000,
+
+			// 			files:[],
+			outside_data: {}
+		};
+
+		this.version = '1.0.7';
+
+		this.xhr = new XMLHttpRequest();
+
+		if (_options && (typeof _options === 'undefined' ? 'undefined' : _typeof(_options)) === 'object') {
+			this.options = Object.assign({}, this.d_options, _options);
+			return this.request();
+		} else {
+			return this;
+		}
+	}
+
+	_createClass(xhres6, [{
+		key: 'buildParamsAsQueryString',
+		value: function buildParamsAsQueryString(params) {
+			var queryString = [];
+
+			var _loop = function _loop(p) {
+				if (params.hasOwnProperty(p)) {
+					if (Array.isArray(params[p])) {
+						params[p].forEach(function (value, key) {
+							queryString.push(p + '=' + value);
+						});
+					} else {
+						queryString.push(p + '=' + params[p]);
+					}
+				}
+			};
+
+			for (var p in params) {
+				_loop(p);
+			}
+			return queryString.length > 0 ? '?' + queryString.join('&') : '';
+		}
+	}, {
+		key: 'request',
+		value: function request() {
+			var _this = this;
+
+			// 		if(this.options.sendDataType != 'raw' && this.options.sendDataType != 'form-data' && this.options.sendDataType!= 'json' ){
+			// 			console.warn('invalidate sendDataType value, I will use default (json) \n sendDataType = [form-data | json]');
+			// 			this.options.sendDataType = 'raw';
+			// 		}
+			if (this.options.method == 'GET') {
+				var reg = /(\[)(.*)(\])/;
+				for (var key in this.options.data) {
+					if (this.options.data.hasOwnProperty(key) && reg.test(key)) {
+						var tmp_key = key;
+						tmp_key = tmp_key.replace(reg, function () {
+							if (arguments[1] == '[') {
+								arguments[1] = encodeURI('[');
+							}
+							if (arguments[3] == ']') {
+								arguments[3] = encodeURI(']');
+							}
+							return arguments[1] + arguments[2] + arguments[3];
+						});
+						this.options.data[tmp_key] = this.options.data[key];
+						delete this.options.data[key];
+					}
+				}
+
+				this.options.url += this.buildParamsAsQueryString(this.options.data);
+			}
+
+			var _options2 = this.options,
+			    url = _options2.url,
+			    method = _options2.method,
+			    timeout = _options2.timeout,
+			    async = _options2.async,
+			    data = _options2.data,
+			    headers = _options2.headers,
+			    form_data = _options2.form_data,
+			    sendDataType = _options2.sendDataType;
+
+
+			var xhr = this.xhr;
+
+			xhr.open(method, url, async);
+			if (sendDataType == 'json') {
+				xhr.setRequestHeader('Accept', 'application/json');
+				xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+			}
+
+			for (var _key in headers) {
+				if (headers.hasOwnProperty(_key)) {
+					xhr.setRequestHeader(_key, headers[_key]);
+				}
+			}
+			if (async) {
+				xhr.timeout = timeout;
+			}
+
+			if (method == 'GET' || method == 'HEAD') {
+				xhr.send();
+			} else {
+				switch (sendDataType) {
+					case 'form-data':
+						xhr.send(data);
+						break;
+					case 'raw':
+						xhr.send(data);
+						break;
+					case 'json':
+						xhr.send(JSON.stringify(data));
+						break;
+					default:
+						xhr.send(data);
+				}
+			}
+
+			var xhrPromise = new Promise(function (resolve, reject) {
+				xhr.onreadystatechange = function () {
+					if (xhr.readyState !== 4) return;
+					if (xhr.status == 0) {
+						return reject({ xhr_status: xhr.status, info: "timeout" });
+					}
+					var rptext = typeof xhr.responseText === 'string' && xhr.responseText !== '' ? JSON.parse(xhr.responseText) : xhr.responseText;
+					var header_array = xhr.getAllResponseHeaders().toLowerCase().replace(/\n/g, '||').replace(/\|\|$/, '').split('||');
+					var headers_obj = {};
+					for (var i = 0; i < header_array.length; i++) {
+						var obj_item = header_array[i].split(": ");
+						headers_obj[obj_item[0]] = obj_item[1];
+					}
+
+					rptext = Object.assign({}, { headers: headers_obj, body: rptext, xhr_status: xhr.status, outside_data: _this.options.outside_data });
+					return resolve(rptext);
+				};
+			});
+
+			return xhrPromise;
+		}
+	}, {
+		key: 'get',
+		value: function get() {
+			var _url = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
+
+			var _options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+			this.options = Object.assign({}, this.d_options, _options, { url: _url, method: 'GET' });
+
+			return this.request();
+		}
+	}, {
+		key: 'post',
+		value: function post() {
+			var _url = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
+
+			var _options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+			this.options = Object.assign({}, this.d_options, _options, { url: _url, method: 'POST' });
+
+			return this.request();
+		}
+	}, {
+		key: 'put',
+		value: function put() {
+			var _url = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
+
+			var _options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+			this.options = Object.assign({}, this.d_options, _options, { url: _url, method: 'PUT' });
+
+			return this.request();
+		}
+	}, {
+		key: 'delete',
+		value: function _delete() {
+			var _url = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
+
+			var _options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+			this.options = Object.assign({}, this.d_options, _options, { url: _url, method: 'DELETE' });
+
+			return this.request();
+		}
+	}]);
+
+	return xhres6;
+}();
+
+exports.default = xhres6;
+
+/***/ }),
+/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /*
@@ -9287,232 +9513,6 @@ function updateLink(linkElement, options, obj) {
 
 
 /***/ }),
-/* 3 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-	value: true
-});
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-// XMLHttpRequest with Promise and ES6 syntax
-// Author by AquirJan, wing.free0@gmail.com
-// create at 8-2-2016
-// last modify at 3-30-2017
-// version 1.0.7;
-// commit : fix sendDataType default type;
-
-var xhres6 = function () {
-	function xhres6(_options) {
-		_classCallCheck(this, xhres6);
-
-		this.d_options = {
-			method: "POST",
-			headers: {},
-			data: {},
-			sendDataType: 'raw', //xhr send data type
-			async: true,
-			url: '/',
-			resDataType: '', //response data type
-			// 			return_xhr:false,
-			timeout: 10000,
-
-			// 			files:[],
-			outside_data: {}
-		};
-
-		this.version = '1.0.7';
-
-		this.xhr = new XMLHttpRequest();
-
-		if (_options && (typeof _options === 'undefined' ? 'undefined' : _typeof(_options)) === 'object') {
-			this.options = Object.assign({}, this.d_options, _options);
-			return this.request();
-		} else {
-			return this;
-		}
-	}
-
-	_createClass(xhres6, [{
-		key: 'buildParamsAsQueryString',
-		value: function buildParamsAsQueryString(params) {
-			var queryString = [];
-
-			var _loop = function _loop(p) {
-				if (params.hasOwnProperty(p)) {
-					if (Array.isArray(params[p])) {
-						params[p].forEach(function (value, key) {
-							queryString.push(p + '=' + value);
-						});
-					} else {
-						queryString.push(p + '=' + params[p]);
-					}
-				}
-			};
-
-			for (var p in params) {
-				_loop(p);
-			}
-			return queryString.length > 0 ? '?' + queryString.join('&') : '';
-		}
-	}, {
-		key: 'request',
-		value: function request() {
-			var _this = this;
-
-			// 		if(this.options.sendDataType != 'raw' && this.options.sendDataType != 'form-data' && this.options.sendDataType!= 'json' ){
-			// 			console.warn('invalidate sendDataType value, I will use default (json) \n sendDataType = [form-data | json]');
-			// 			this.options.sendDataType = 'raw';
-			// 		}
-			if (this.options.method == 'GET') {
-				var reg = /(\[)(.*)(\])/;
-				for (var key in this.options.data) {
-					if (this.options.data.hasOwnProperty(key) && reg.test(key)) {
-						var tmp_key = key;
-						tmp_key = tmp_key.replace(reg, function () {
-							if (arguments[1] == '[') {
-								arguments[1] = encodeURI('[');
-							}
-							if (arguments[3] == ']') {
-								arguments[3] = encodeURI(']');
-							}
-							return arguments[1] + arguments[2] + arguments[3];
-						});
-						this.options.data[tmp_key] = this.options.data[key];
-						delete this.options.data[key];
-					}
-				}
-
-				this.options.url += this.buildParamsAsQueryString(this.options.data);
-			}
-
-			var _options2 = this.options,
-			    url = _options2.url,
-			    method = _options2.method,
-			    timeout = _options2.timeout,
-			    async = _options2.async,
-			    data = _options2.data,
-			    headers = _options2.headers,
-			    form_data = _options2.form_data,
-			    sendDataType = _options2.sendDataType;
-
-
-			var xhr = this.xhr;
-
-			xhr.open(method, url, async);
-			if (sendDataType == 'json') {
-				xhr.setRequestHeader('Accept', 'application/json');
-				xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-			}
-
-			for (var _key in headers) {
-				if (headers.hasOwnProperty(_key)) {
-					xhr.setRequestHeader(_key, headers[_key]);
-				}
-			}
-			if (async) {
-				xhr.timeout = timeout;
-			}
-
-			if (method == 'GET' || method == 'HEAD') {
-				xhr.send();
-			} else {
-				switch (sendDataType) {
-					case 'form-data':
-						xhr.send(data);
-						break;
-					case 'raw':
-						xhr.send(data);
-						break;
-					case 'json':
-						xhr.send(JSON.stringify(data));
-						break;
-					default:
-						xhr.send(data);
-				}
-			}
-
-			var xhrPromise = new Promise(function (resolve, reject) {
-				xhr.onreadystatechange = function () {
-					if (xhr.readyState !== 4) return;
-					if (xhr.status == 0) {
-						return reject({ xhr_status: xhr.status, info: "timeout" });
-					}
-					var rptext = typeof xhr.responseText === 'string' && xhr.responseText !== '' ? JSON.parse(xhr.responseText) : xhr.responseText;
-					var header_array = xhr.getAllResponseHeaders().toLowerCase().replace(/\n/g, '||').replace(/\|\|$/, '').split('||');
-					var headers_obj = {};
-					for (var i = 0; i < header_array.length; i++) {
-						var obj_item = header_array[i].split(": ");
-						headers_obj[obj_item[0]] = obj_item[1];
-					}
-
-					rptext = Object.assign({}, { headers: headers_obj, body: rptext, xhr_status: xhr.status, outside_data: _this.options.outside_data });
-					return resolve(rptext);
-				};
-			});
-
-			return xhrPromise;
-		}
-	}, {
-		key: 'get',
-		value: function get() {
-			var _url = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
-
-			var _options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
-			this.options = Object.assign({}, this.d_options, _options, { url: _url, method: 'GET' });
-
-			return this.request();
-		}
-	}, {
-		key: 'post',
-		value: function post() {
-			var _url = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
-
-			var _options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
-			this.options = Object.assign({}, this.d_options, _options, { url: _url, method: 'POST' });
-
-			return this.request();
-		}
-	}, {
-		key: 'put',
-		value: function put() {
-			var _url = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
-
-			var _options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
-			this.options = Object.assign({}, this.d_options, _options, { url: _url, method: 'PUT' });
-
-			return this.request();
-		}
-	}, {
-		key: 'delete',
-		value: function _delete() {
-			var _url = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
-
-			var _options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
-			this.options = Object.assign({}, this.d_options, _options, { url: _url, method: 'DELETE' });
-
-			return this.request();
-		}
-	}]);
-
-	return xhres6;
-}();
-
-exports.default = xhres6;
-
-/***/ }),
 /* 4 */
 /***/ (function(module, exports) {
 
@@ -9629,7 +9629,7 @@ if (typeof DEBUG !== 'undefined' && DEBUG) {
   ) }
 }
 
-var listToStyles = __webpack_require__(16)
+var listToStyles = __webpack_require__(17)
 
 /*
 type StyleObject = {
@@ -9845,17 +9845,21 @@ var _vue = __webpack_require__(1);
 
 var _vue2 = _interopRequireDefault(_vue);
 
-var _vueRouter = __webpack_require__(15);
+var _vueRouter = __webpack_require__(16);
 
 var _vueRouter2 = _interopRequireDefault(_vueRouter);
 
-var _main = __webpack_require__(26);
+var _main = __webpack_require__(29);
 
 var _main2 = _interopRequireDefault(_main);
 
-var _ = __webpack_require__(25);
+var _ = __webpack_require__(27);
 
 var _2 = _interopRequireDefault(_);
+
+var _home = __webpack_require__(28);
+
+var _home2 = _interopRequireDefault(_home);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -9919,6 +9923,10 @@ var router = new _vueRouter2.default({
     name: 'root',
     component: _main2.default
   }, {
+    path: '/home',
+    name: 'home',
+    component: _home2.default
+  }, {
     path: '/*',
     name: '404',
     component: _2.default
@@ -9965,11 +9973,11 @@ var _vue = __webpack_require__(1);
 
 var _vue2 = _interopRequireDefault(_vue);
 
-var _vuex = __webpack_require__(17);
+var _vuex = __webpack_require__(18);
 
 var _vuex2 = _interopRequireDefault(_vuex);
 
-var _xhres = __webpack_require__(3);
+var _xhres = __webpack_require__(2);
 
 var _xhres2 = _interopRequireDefault(_xhres);
 
@@ -10000,7 +10008,7 @@ exports.default = store;
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(20);
+var content = __webpack_require__(21);
 if(typeof content === 'string') content = [[module.i, content, '']];
 // Prepare cssTransformation
 var transform;
@@ -10008,7 +10016,7 @@ var transform;
 var options = {}
 options.transform = transform
 // add the styles to the DOM
-var update = __webpack_require__(2)(content, options);
+var update = __webpack_require__(3)(content, options);
 if(content.locals) module.exports = content.locals;
 // Hot Module Replacement
 if(false) {
@@ -10031,7 +10039,7 @@ if(false) {
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(21);
+var content = __webpack_require__(22);
 if(typeof content === 'string') content = [[module.i, content, '']];
 // Prepare cssTransformation
 var transform;
@@ -10039,7 +10047,7 @@ var transform;
 var options = {}
 options.transform = transform
 // add the styles to the DOM
-var update = __webpack_require__(2)(content, options);
+var update = __webpack_require__(3)(content, options);
 if(content.locals) module.exports = content.locals;
 // Hot Module Replacement
 if(false) {
@@ -10062,7 +10070,7 @@ if(false) {
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(22);
+var content = __webpack_require__(23);
 if(typeof content === 'string') content = [[module.i, content, '']];
 // Prepare cssTransformation
 var transform;
@@ -10070,7 +10078,7 @@ var transform;
 var options = {}
 options.transform = transform
 // add the styles to the DOM
-var update = __webpack_require__(2)(content, options);
+var update = __webpack_require__(3)(content, options);
 if(content.locals) module.exports = content.locals;
 // Hot Module Replacement
 if(false) {
@@ -10260,7 +10268,63 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _xhres = __webpack_require__(3);
+var _xhres = __webpack_require__(2);
+
+var _xhres2 = _interopRequireDefault(_xhres);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+exports.default = {
+  data: function data() {
+    return {};
+  },
+  mounted: function mounted() {},
+
+  computed: {},
+  methods: {
+    picOnchange: function picOnchange(e) {
+      //     			console.dir(e);
+      var file = e.target.files[0];
+      console.dir(file);
+      this.uploadFile(file);
+    },
+    uploadFile: function uploadFile(_file) {
+      var xhr = new _xhres2.default();
+      xhr.put('http://dev.yimentong.sj33333.com/index.php/v3/admin/Image', {
+        headers: {
+          'Content-Type': 'multipart/form-data;'
+        },
+        data: _file
+      }).then(function (_rpdata) {
+        console.dir(_rpdata);
+        var headers = _rpdata.headers,
+            body = _rpdata.body,
+            xhr_status = _rpdata.xhr_status,
+            xhr = _rpdata.xhr;
+        // body this is server response data;
+      });
+    }
+  }
+}; //
+//
+//
+//
+//
+//
+//
+
+/***/ }),
+/* 15 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _xhres = __webpack_require__(2);
 
 var _xhres2 = _interopRequireDefault(_xhres);
 
@@ -10306,7 +10370,7 @@ exports.default = {
 // 	import moment from 'moment';
 
 /***/ }),
-/* 15 */
+/* 16 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -12606,10 +12670,10 @@ if (inBrowser && window.Vue) {
 }
 
 /* harmony default export */ __webpack_exports__["default"] = (VueRouter);
-/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(19)))
+/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(20)))
 
 /***/ }),
-/* 16 */
+/* 17 */
 /***/ (function(module, exports) {
 
 /**
@@ -12641,7 +12705,7 @@ module.exports = function listToStyles(parentId, list) {
 };
 
 /***/ }),
-/* 17 */
+/* 18 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -13476,7 +13540,7 @@ var index_esm = {
 /* harmony default export */ __webpack_exports__["default"] = (index_esm);
 
 /***/ }),
-/* 18 */
+/* 19 */
 /***/ (function(module, exports) {
 
 var g;
@@ -13501,7 +13565,7 @@ try {
 module.exports = g;
 
 /***/ }),
-/* 19 */
+/* 20 */
 /***/ (function(module, exports) {
 
 // shim for using process in browser
@@ -13691,7 +13755,7 @@ process.umask = function () {
 };
 
 /***/ }),
-/* 20 */
+/* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
 exports = module.exports = __webpack_require__(0)(undefined);
@@ -13705,7 +13769,7 @@ exports.push([module.i, "@charset \"UTF-8\";\n/*********       aj init  version 
 
 
 /***/ }),
-/* 21 */
+/* 22 */
 /***/ (function(module, exports, __webpack_require__) {
 
 exports = module.exports = __webpack_require__(0)(undefined);
@@ -13719,7 +13783,7 @@ exports.push([module.i, "/*!\n * Bootstrap v3.3.7 (http://getbootstrap.com)\n * 
 
 
 /***/ }),
-/* 22 */
+/* 23 */
 /***/ (function(module, exports, __webpack_require__) {
 
 exports = module.exports = __webpack_require__(0)(undefined);
@@ -13733,7 +13797,21 @@ exports.push([module.i, "@charset \"UTF-8\";\n/*********       dokodm common sty
 
 
 /***/ }),
-/* 23 */
+/* 24 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(0)(undefined);
+// imports
+
+
+// module
+exports.push([module.i, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n", ""]);
+
+// exports
+
+
+/***/ }),
+/* 25 */
 /***/ (function(module, exports, __webpack_require__) {
 
 exports = module.exports = __webpack_require__(0)(undefined);
@@ -13747,7 +13825,7 @@ exports.push([module.i, "\n.t-style[data-v-17ee7016]{\n\tbackground:#283;\n}\n",
 
 
 /***/ }),
-/* 24 */
+/* 26 */
 /***/ (function(module, exports, __webpack_require__) {
 
 exports = module.exports = __webpack_require__(0)(undefined);
@@ -13761,19 +13839,19 @@ exports.push([module.i, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\
 
 
 /***/ }),
-/* 25 */
+/* 27 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var disposed = false
 function injectStyle (ssrContext) {
   if (disposed) return
-  __webpack_require__(30)
+  __webpack_require__(35)
 }
 var Component = __webpack_require__(4)(
   /* script */
   __webpack_require__(13),
   /* template */
-  __webpack_require__(28),
+  __webpack_require__(32),
   /* styles */
   injectStyle,
   /* scopeId */
@@ -13805,19 +13883,63 @@ module.exports = Component.exports
 
 
 /***/ }),
-/* 26 */
+/* 28 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var disposed = false
 function injectStyle (ssrContext) {
   if (disposed) return
-  __webpack_require__(29)
+  __webpack_require__(33)
 }
 var Component = __webpack_require__(4)(
   /* script */
   __webpack_require__(14),
   /* template */
-  __webpack_require__(27),
+  __webpack_require__(30),
+  /* styles */
+  injectStyle,
+  /* scopeId */
+  "data-v-09174788",
+  /* moduleIdentifier (server only) */
+  null
+)
+Component.options.__file = "/Users/aquirjan/githubProjects/dokodmFrontend/src/pages/home.vue"
+if (Component.esModule && Object.keys(Component.esModule).some(function (key) {return key !== "default" && key.substr(0, 2) !== "__"})) {console.error("named exports are not supported in *.vue files.")}
+if (Component.options.functional) {console.error("[vue-loader] home.vue: functional components are not supported with templates, they should use render functions.")}
+
+/* hot reload */
+if (false) {(function () {
+  var hotAPI = require("vue-hot-reload-api")
+  hotAPI.install(require("vue"), false)
+  if (!hotAPI.compatible) return
+  module.hot.accept()
+  if (!module.hot.data) {
+    hotAPI.createRecord("data-v-09174788", Component.options)
+  } else {
+    hotAPI.reload("data-v-09174788", Component.options)
+  }
+  module.hot.dispose(function (data) {
+    disposed = true
+  })
+})()}
+
+module.exports = Component.exports
+
+
+/***/ }),
+/* 29 */
+/***/ (function(module, exports, __webpack_require__) {
+
+var disposed = false
+function injectStyle (ssrContext) {
+  if (disposed) return
+  __webpack_require__(34)
+}
+var Component = __webpack_require__(4)(
+  /* script */
+  __webpack_require__(15),
+  /* template */
+  __webpack_require__(31),
   /* styles */
   injectStyle,
   /* scopeId */
@@ -13849,7 +13971,31 @@ module.exports = Component.exports
 
 
 /***/ }),
-/* 27 */
+/* 30 */
+/***/ (function(module, exports, __webpack_require__) {
+
+module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
+  return _c('div', [_vm._v("\n\ti am home page\n\t"), _c('input', {
+    ref: "files",
+    staticClass: "form-control",
+    attrs: {
+      "type": "file"
+    },
+    on: {
+      "change": _vm.picOnchange
+    }
+  })])
+},staticRenderFns: []}
+module.exports.render._withStripped = true
+if (false) {
+  module.hot.accept()
+  if (module.hot.data) {
+     require("vue-hot-reload-api").rerender("data-v-09174788", module.exports)
+  }
+}
+
+/***/ }),
+/* 31 */
 /***/ (function(module, exports, __webpack_require__) {
 
 module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
@@ -13889,7 +14035,7 @@ if (false) {
 }
 
 /***/ }),
-/* 28 */
+/* 32 */
 /***/ (function(module, exports, __webpack_require__) {
 
 module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c=_vm._self._c||_h;
@@ -13912,13 +14058,39 @@ if (false) {
 }
 
 /***/ }),
-/* 29 */
+/* 33 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(23);
+var content = __webpack_require__(24);
+if(typeof content === 'string') content = [[module.i, content, '']];
+if(content.locals) module.exports = content.locals;
+// add the styles to the DOM
+var update = __webpack_require__(5)("53d3de4b", content, false);
+// Hot Module Replacement
+if(false) {
+ // When the styles change, update the <style> tags
+ if(!content.locals) {
+   module.hot.accept("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-09174788\",\"scoped\":true,\"hasInlineConfig\":false}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./home.vue", function() {
+     var newContent = require("!!../../../../node_modules/css-loader/index.js!../../../../node_modules/vue-loader/lib/style-compiler/index.js?{\"vue\":true,\"id\":\"data-v-09174788\",\"scoped\":true,\"hasInlineConfig\":false}!../../../../node_modules/vue-loader/lib/selector.js?type=styles&index=0!./home.vue");
+     if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+     update(newContent);
+   });
+ }
+ // When the module is disposed, remove the <style> tags
+ module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 34 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(25);
 if(typeof content === 'string') content = [[module.i, content, '']];
 if(content.locals) module.exports = content.locals;
 // add the styles to the DOM
@@ -13938,13 +14110,13 @@ if(false) {
 }
 
 /***/ }),
-/* 30 */
+/* 35 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(24);
+var content = __webpack_require__(26);
 if(typeof content === 'string') content = [[module.i, content, '']];
 if(content.locals) module.exports = content.locals;
 // add the styles to the DOM
