@@ -149,41 +149,14 @@
 			function preloadFn(_url){
 				var js_loaderWrap = document.getElementById('loaderWrap');
 				var js_loadingSpinner = document.getElementById('loadingSpinner');
-// 				var js_app = document.getElementById('aapp');
-// 				var js_lwProgress = document.getElementById('lwProgress');
-// 				var js_lwProgressNum = document.getElementById('lwProgressNum');
 
 				var xhRequest = new XMLHttpRequest();
 			
 				xhRequest.open('GET', _url, true);
-				
-
-// 				xhRequest.onprogress = function(event){
-// 					var total_size = 0;
-// // 					try{
-// // 						total_size = event.total;
-// // 						var tmpobj = event.lengthComputable
-// // 						alert(tmpobj,total_size);
-// // 					}catch(e){
-// // 						alert(e);
-// // 					}
-// 					if (event.lengthComputable) {
-// 						total_size = event.total;
-// 					}else{
-// 						console.log('fuck bug');
-// 					}
-// 					var percent = (event.loaded / event.total).toFixed(2);
-// 					percent = Math.floor(percent*100);
-// 					lwProgressNum.innerText= percent+'%';
-// 					js_lwProgress.style.cssText = ';width:'+percent+'%;';
-// 					
-// 				}
 				xhRequest.onreadystatechange = function(){
 					if(xhRequest.readyState !== 4) return;
 					switch(xhRequest.status){
 						case 200:
-// 							js_loaderWrap.style.cssText = js_loaderWrap.style.cssText+';display:none !important;';
-// 							return;
 							
 							eval(xhRequest.responseText);
 							js_loaderWrap.className = js_loaderWrap.className+' trans-out';
@@ -198,7 +171,6 @@
 							},200)
 							break;
 						default:
-// 							lwProgressNum.innerText= 'please reload page';
 							console.log('load error');
 					}
 				}
@@ -209,12 +181,6 @@
 
 			window.onload = function(){
 				preloadFn('app.bundle.js?v='+new Date().getTime());
-// 				var js_loaderWrap = document.getElementById('loaderWrap');
-// 				js_loaderWrap.className = js_loaderWrap.className+' trans-out';
-// 				js_loaderWrap.addEventListener('transitionend',function js_loaderWrapLevent(){
-// 					this.style.cssText = this.style.cssText+';display:none !important;';
-// 					this.removeEventListener('transitionend', js_loaderWrapLevent, false);
-// 				});
 			}
 		</script>
 	</body>

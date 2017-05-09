@@ -28,10 +28,10 @@
     		},
 			uploadFile(_file){
 				const xhr = new xhres6;
-				xhr.withCredentials = true;
-				xhr.put('http://dev.yimentong.sj33333.com/index.php/v3/admin/Image',{
+				// let p = this;
+				xhr.put('http://localhost/portal/Image',{
 					headers:{
-						'Content-Type':'multipart/form-data;'
+						'Content-Type':'multipart/form-data;',
 					},
 					data:_file
 				})
