@@ -19,7 +19,6 @@ class xhres6 {
 			resDataType:'', //response data type
 // 			return_xhr:false,
 			timeout:10000,
-			withCredentials: false,
 			
 // 			files:[],
 			outside_data:{}
@@ -28,8 +27,7 @@ class xhres6 {
 		this.version = '1.0.7';
 		
 		this.xhr=new XMLHttpRequest();
-		// this.xhr.withCredentials = this.d_options.withCredentials;
-
+		
 		if(_options && typeof(_options) === 'object'){
 			this.options = Object.assign({}, this.d_options, _options);
 			return this.request();
@@ -53,13 +51,6 @@ class xhres6 {
 			}
 		}
 		return queryString.length > 0 ? `?${queryString.join('&')}` : '';
-	}
-
-	setCredentials(value) {
-		console.log(typeof value);
-		if (typeof value === 'boolean') {
-			this.d_options.withCredentials = value;
-		}
 	}
 	
 	request(){
@@ -90,7 +81,7 @@ class xhres6 {
 			this.options.url += this.buildParamsAsQueryString(this.options.data);
 		}
 		
-		const { url, method, timeout, async, data, headers, form_data, sendDataType, withCredentials } = this.options;
+		const { url, method, timeout, async, data, headers, form_data, sendDataType } = this.options;
 			
 		const xhr = this.xhr;
 		
@@ -109,9 +100,7 @@ class xhres6 {
 			xhr.timeout = timeout;
 		}
 		
-		xhr.withCredentials = withCredentials;
-		console.dir(xhr);
-		console.log('fuck');
+		
 		
 		if(method == 'GET' || method == 'HEAD'){
 			xhr.send();
