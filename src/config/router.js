@@ -7,6 +7,7 @@ Vue.use(VueRouter);
 
 import Main from './../pages/main.vue';
 import NotFound from './../pages/404.vue';
+import Home from './../pages/home.vue';
 // import Home from './pages/home.vue';
 // import Tabpage from './tabpage.vue';
 // const page_array = [
@@ -65,6 +66,11 @@ const router = new VueRouter({
   			path:'/',
   			name:'root',
   			component:Main
+  		},
+  		{
+  			path:'/home',
+  			name:'home',
+  			component:Home
   		},
   		{
   			path:'/*',
