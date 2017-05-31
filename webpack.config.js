@@ -1,4 +1,4 @@
-// const HtmlWebpackPlugin = require('html-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 const webpack = require('webpack');
 const path = require('path');
 const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
@@ -109,7 +109,10 @@ module.exports = {
 // // 			   return module.context && module.context.indexOf('node_modules') !== -1;
 // // 			}
 // 		}),
-// 		new HtmlWebpackPlugin()
+		new HtmlWebpackPlugin({
+			title: 'Dokodm web',
+      		filename: './src/public/index.html'
+		})
 // 		new UglifyJSPlugin(),
 //         new webpack.optimize.DedupePlugin(),
 //         new webpack.DefinePlugin({
