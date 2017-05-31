@@ -230,8 +230,231 @@ function toComment(sourceMap) {
 /* 1 */
 /***/ (function(module, exports, __webpack_require__) {
 
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+// XMLHttpRequest with Promise and ES6 syntax
+// Author by AquirJan, wing.free0@gmail.com
+// create at 8-2-2016
+// last modify at 5-18-2017
+// version 1.0.8;
+// commit : modify the return reject position;
+
+var xhres6 = function () {
+	function xhres6(_options) {
+		_classCallCheck(this, xhres6);
+
+		this.def_opts = {
+			method: "POST",
+			headers: {},
+			data: {},
+			sendDataType: 'json', //xhr send data type
+			async: true,
+			url: '',
+			resDataType: '', //response data type
+			timeout: 10000,
+			outside_data: {}
+		};
+
+		this.version = '1.0.8';
+
+		this.xhr = new XMLHttpRequest();
+
+		if (_options && (typeof _options === 'undefined' ? 'undefined' : _typeof(_options)) === 'object') {
+			this.options = Object.assign({}, this.def_opts, _options);
+			return this.request();
+		} else {
+			return this;
+		}
+	}
+
+	_createClass(xhres6, [{
+		key: 'buildParamsAsQueryString',
+		value: function buildParamsAsQueryString(params) {
+			var queryString = [];
+
+			var _loop = function _loop(p) {
+				if (params.hasOwnProperty(p)) {
+					if (Array.isArray(params[p])) {
+						params[p].forEach(function (value, key) {
+							queryString.push(p + '=' + value);
+						});
+					} else {
+						queryString.push(p + '=' + params[p]);
+					}
+				}
+			};
+
+			for (var p in params) {
+				_loop(p);
+			}
+			return queryString.length > 0 ? '?' + queryString.join('&') : '';
+		}
+	}, {
+		key: 'request',
+		value: function request() {
+			var _this = this;
+
+			if (this.options.method == 'GET') {
+				var reg = /(\[)(.*)(\])/;
+				for (var key in this.options.data) {
+					if (this.options.data.hasOwnProperty(key) && reg.test(key)) {
+						var tmp_key = key;
+						tmp_key = tmp_key.replace(reg, function () {
+							if (arguments[1] == '[') {
+								arguments[1] = encodeURI('[');
+							}
+							if (arguments[3] == ']') {
+								arguments[3] = encodeURI(']');
+							}
+							return arguments[1] + arguments[2] + arguments[3];
+						});
+						this.options.data[tmp_key] = this.options.data[key];
+						delete this.options.data[key];
+					}
+				}
+
+				this.options.url += this.buildParamsAsQueryString(this.options.data);
+			}
+
+			var _options2 = this.options,
+			    url = _options2.url,
+			    method = _options2.method,
+			    timeout = _options2.timeout,
+			    async = _options2.async,
+			    data = _options2.data,
+			    headers = _options2.headers,
+			    form_data = _options2.form_data,
+			    sendDataType = _options2.sendDataType;
+
+
+			var xhr = this.xhr;
+
+			xhr.open(method, url, async);
+			if (sendDataType == 'json') {
+				xhr.setRequestHeader('Accept', 'application/json');
+				xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+			}
+
+			for (var _key in headers) {
+				if (headers.hasOwnProperty(_key)) {
+					xhr.setRequestHeader(_key, headers[_key]);
+				}
+			}
+			if (async) {
+				xhr.timeout = timeout;
+			}
+
+			if (method == 'GET' || method == 'HEAD') {
+				xhr.send();
+			} else {
+				switch (sendDataType) {
+					case 'form-data':
+						xhr.send(data);
+						break;
+					case 'raw':
+						xhr.send(data);
+						break;
+					case 'json':
+						xhr.send(JSON.stringify(data));
+						break;
+					default:
+						xhr.send(data);
+				}
+			}
+
+			var xhrPromise = new Promise(function (resolve, reject) {
+				xhr.onreadystatechange = function () {
+					if (xhr.readyState !== 4) {
+						reject({ xhr_status: xhr.status, info: "readyState Error" });
+						return;
+					}
+					if (xhr.status == 0) {
+						reject({ xhr_status: xhr.status, info: "timeout" });
+						return;
+					}
+					var rptext = typeof xhr.responseText === 'string' && xhr.responseText !== '' ? JSON.parse(xhr.responseText) : xhr.responseText;
+					var header_array = xhr.getAllResponseHeaders().toLowerCase().replace(/\n/g, '||').replace(/\|\|$/, '').split('||');
+					var headers_obj = {};
+					for (var i = 0; i < header_array.length; i++) {
+						var obj_item = header_array[i].split(": ");
+						headers_obj[obj_item[0]] = obj_item[1];
+					}
+
+					rptext = Object.assign({}, { headers: headers_obj, body: rptext, xhr_status: xhr.status, outside_data: _this.options.outside_data });
+					resolve(rptext);
+				};
+			});
+
+			return xhrPromise;
+		}
+	}, {
+		key: 'get',
+		value: function get() {
+			var _url = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
+
+			var _options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+			this.options = Object.assign({}, this.def_opts, _options, { url: _url, method: 'GET' });
+
+			return this.request();
+		}
+	}, {
+		key: 'post',
+		value: function post() {
+			var _url = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
+
+			var _options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+			this.options = Object.assign({}, this.def_opts, _options, { url: _url, method: 'POST' });
+
+			return this.request();
+		}
+	}, {
+		key: 'put',
+		value: function put() {
+			var _url = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
+
+			var _options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+			this.options = Object.assign({}, this.def_opts, _options, { url: _url, method: 'PUT' });
+
+			return this.request();
+		}
+	}, {
+		key: 'delete',
+		value: function _delete() {
+			var _url = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
+
+			var _options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+			this.options = Object.assign({}, this.def_opts, _options, { url: _url, method: 'DELETE' });
+
+			return this.request();
+		}
+	}]);
+
+	return xhres6;
+}();
+
+exports.default = xhres6;
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
 /* WEBPACK VAR INJECTION */(function(global) {/*!
- * Vue.js v2.3.2
+ * Vue.js v2.3.3
  * (c) 2014-2017 Evan You
  * Released under the MIT License.
  */
@@ -257,6 +480,9 @@ function toComment(sourceMap) {
     return v === true;
   }
 
+  function isFalse(v) {
+    return v === false;
+  }
   /**
    * Check if value is primitive
    */
@@ -1776,6 +2002,7 @@ function toComment(sourceMap) {
     cloned.ns = vnode.ns;
     cloned.isStatic = vnode.isStatic;
     cloned.key = vnode.key;
+    cloned.isComment = vnode.isComment;
     cloned.isCloned = true;
     return cloned;
   }
@@ -1960,6 +2187,10 @@ function toComment(sourceMap) {
     return isPrimitive(children) ? [createTextVNode(children)] : Array.isArray(children) ? normalizeArrayChildren(children) : undefined;
   }
 
+  function isTextNode(node) {
+    return isDef(node) && isDef(node.text) && isFalse(node.isComment);
+  }
+
   function normalizeArrayChildren(children, nestedIndex) {
     var res = [];
     var i, c, last;
@@ -1973,18 +2204,22 @@ function toComment(sourceMap) {
       if (Array.isArray(c)) {
         res.push.apply(res, normalizeArrayChildren(c, (nestedIndex || '') + "_" + i));
       } else if (isPrimitive(c)) {
-        if (isDef(last) && isDef(last.text)) {
+        if (isTextNode(last)) {
+          // merge adjacent text nodes
+          // this is necessary for SSR hydration because text nodes are
+          // essentially merged when rendered to HTML strings
           last.text += String(c);
         } else if (c !== '') {
           // convert primitive to vnode
           res.push(createTextVNode(c));
         }
       } else {
-        if (isDef(c.text) && isDef(last) && isDef(last.text)) {
+        if (isTextNode(c) && isTextNode(last)) {
+          // merge adjacent text nodes
           res[res.length - 1] = createTextVNode(last.text + c.text);
         } else {
           // default key for nested array children (likely generated by v-for)
-          if (isDef(c.tag) && isUndef(c.key) && isDef(nestedIndex)) {
+          if (isTrue(children._isVList) && isDef(c.tag) && isUndef(c.key) && isDef(nestedIndex)) {
             c.key = "__vlist" + nestedIndex + "_" + i + "__";
           }
           res.push(c);
@@ -2075,7 +2310,9 @@ function toComment(sourceMap) {
 
           if (isDef(res.timeout)) {
             setTimeout(function () {
-              reject("timeout (" + res.timeout + "ms)");
+              if (isUndef(factory.resolved)) {
+                reject("timeout (" + res.timeout + "ms)");
+              }
             }, res.timeout);
           }
         }
@@ -2261,10 +2498,15 @@ function toComment(sourceMap) {
     return node.isComment || node.text === ' ';
   }
 
-  function resolveScopedSlots(fns) {
-    var res = {};
+  function resolveScopedSlots(fns, // see flow/vnode
+  res) {
+    res = res || {};
     for (var i = 0; i < fns.length; i++) {
-      res[fns[i][0]] = fns[i][1];
+      if (Array.isArray(fns[i])) {
+        resolveScopedSlots(fns[i], res);
+      } else {
+        res[fns[i].key] = fns[i].fn;
+      }
     }
     return res;
   }
@@ -2561,7 +2803,7 @@ function toComment(sourceMap) {
    * Reset the scheduler's state.
    */
   function resetSchedulerState() {
-    queue.length = activatedChildren.length = 0;
+    index = queue.length = activatedChildren.length = 0;
     has = {};
     {
       circular = {};
@@ -2666,10 +2908,10 @@ function toComment(sourceMap) {
         // if already flushing, splice the watcher based on its id
         // if already past its id, it will be run next immediately.
         var i = queue.length - 1;
-        while (i >= 0 && queue[i].id > watcher.id) {
+        while (i > index && queue[i].id > watcher.id) {
           i--;
         }
-        queue.splice(Math.max(i, index) + 1, 0, watcher);
+        queue.splice(i + 1, 0, watcher);
       }
       // queue the flush
       if (!waiting) {
@@ -3553,6 +3795,9 @@ function toComment(sourceMap) {
         ret[i] = render(val[key], key, i);
       }
     }
+    if (isDef(ret)) {
+      ret._isVList = true;
+    }
     return ret;
   }
 
@@ -3925,7 +4170,7 @@ function toComment(sourceMap) {
     Vue.use = function (plugin) {
       /* istanbul ignore if */
       if (plugin.installed) {
-        return;
+        return this;
       }
       // additional parameters
       var args = toArray(arguments, 1);
@@ -3945,6 +4190,7 @@ function toComment(sourceMap) {
   function initMixin$1(Vue) {
     Vue.mixin = function (mixin) {
       this.options = mergeOptions(this.options, mixin);
+      return this;
     };
   }
 
@@ -4225,11 +4471,12 @@ function toComment(sourceMap) {
 
   Object.defineProperty(Vue$3.prototype, '$ssrContext', {
     get: function get() {
+      /* istanbul ignore next */
       return this.$vnode.ssrContext;
     }
   });
 
-  Vue$3.version = '2.3.2';
+  Vue$3.version = '2.3.3';
 
   /*  */
 
@@ -6692,6 +6939,10 @@ function toComment(sourceMap) {
   }
 
   function onCompositionEnd(e) {
+    // prevent triggering an input event for no reason
+    if (!e.target.composing) {
+      return;
+    }
     e.target.composing = false;
     trigger(e.target, 'input');
   }
@@ -8190,8 +8441,8 @@ function toComment(sourceMap) {
     right: genGuard("'button' in $event && $event.button !== 2")
   };
 
-  function genHandlers(events, native, warn) {
-    var res = native ? 'nativeOn:{' : 'on:{';
+  function genHandlers(events, isNative, warn) {
+    var res = isNative ? 'nativeOn:{' : 'on:{';
     for (var name in events) {
       var handler = events[name];
       // #5330: warn click.right, since right clicks do not actually fire click events.
@@ -8531,7 +8782,19 @@ function toComment(sourceMap) {
   }
 
   function genScopedSlot(key, el) {
-    return "[" + key + ",function(" + String(el.attrsMap.scope) + "){" + "return " + (el.tag === 'template' ? genChildren(el) || 'void 0' : genElement(el)) + "}]";
+    if (el.for && !el.forProcessed) {
+      return genForScopedSlot(key, el);
+    }
+    return "{key:" + key + ",fn:function(" + String(el.attrsMap.scope) + "){" + "return " + (el.tag === 'template' ? genChildren(el) || 'void 0' : genElement(el)) + "}}";
+  }
+
+  function genForScopedSlot(key, el) {
+    var exp = el.for;
+    var alias = el.alias;
+    var iterator1 = el.iterator1 ? "," + el.iterator1 : '';
+    var iterator2 = el.iterator2 ? "," + el.iterator2 : '';
+    el.forProcessed = true; // avoid recursion
+    return "_l((" + exp + ")," + "function(" + alias + iterator1 + iterator2 + "){" + "return " + genScopedSlot(key, el) + '})';
   }
 
   function genChildren(el, checkSkip) {
@@ -9053,229 +9316,6 @@ function toComment(sourceMap) {
   return Vue$3;
 });
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(19)))
-
-/***/ }),
-/* 2 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-	value: true
-});
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-// XMLHttpRequest with Promise and ES6 syntax
-// Author by AquirJan, wing.free0@gmail.com
-// create at 8-2-2016
-// last modify at 5-18-2017
-// version 1.0.8;
-// commit : modify the return reject position;
-
-var xhres6 = function () {
-	function xhres6(_options) {
-		_classCallCheck(this, xhres6);
-
-		this.def_opts = {
-			method: "POST",
-			headers: {},
-			data: {},
-			sendDataType: 'json', //xhr send data type
-			async: true,
-			url: '',
-			resDataType: '', //response data type
-			timeout: 10000,
-			outside_data: {}
-		};
-
-		this.version = '1.0.8';
-
-		this.xhr = new XMLHttpRequest();
-
-		if (_options && (typeof _options === 'undefined' ? 'undefined' : _typeof(_options)) === 'object') {
-			this.options = Object.assign({}, this.def_opts, _options);
-			return this.request();
-		} else {
-			return this;
-		}
-	}
-
-	_createClass(xhres6, [{
-		key: 'buildParamsAsQueryString',
-		value: function buildParamsAsQueryString(params) {
-			var queryString = [];
-
-			var _loop = function _loop(p) {
-				if (params.hasOwnProperty(p)) {
-					if (Array.isArray(params[p])) {
-						params[p].forEach(function (value, key) {
-							queryString.push(p + '=' + value);
-						});
-					} else {
-						queryString.push(p + '=' + params[p]);
-					}
-				}
-			};
-
-			for (var p in params) {
-				_loop(p);
-			}
-			return queryString.length > 0 ? '?' + queryString.join('&') : '';
-		}
-	}, {
-		key: 'request',
-		value: function request() {
-			var _this = this;
-
-			if (this.options.method == 'GET') {
-				var reg = /(\[)(.*)(\])/;
-				for (var key in this.options.data) {
-					if (this.options.data.hasOwnProperty(key) && reg.test(key)) {
-						var tmp_key = key;
-						tmp_key = tmp_key.replace(reg, function () {
-							if (arguments[1] == '[') {
-								arguments[1] = encodeURI('[');
-							}
-							if (arguments[3] == ']') {
-								arguments[3] = encodeURI(']');
-							}
-							return arguments[1] + arguments[2] + arguments[3];
-						});
-						this.options.data[tmp_key] = this.options.data[key];
-						delete this.options.data[key];
-					}
-				}
-
-				this.options.url += this.buildParamsAsQueryString(this.options.data);
-			}
-
-			var _options2 = this.options,
-			    url = _options2.url,
-			    method = _options2.method,
-			    timeout = _options2.timeout,
-			    async = _options2.async,
-			    data = _options2.data,
-			    headers = _options2.headers,
-			    form_data = _options2.form_data,
-			    sendDataType = _options2.sendDataType;
-
-
-			var xhr = this.xhr;
-
-			xhr.open(method, url, async);
-			if (sendDataType == 'json') {
-				xhr.setRequestHeader('Accept', 'application/json');
-				xhr.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
-			}
-
-			for (var _key in headers) {
-				if (headers.hasOwnProperty(_key)) {
-					xhr.setRequestHeader(_key, headers[_key]);
-				}
-			}
-			if (async) {
-				xhr.timeout = timeout;
-			}
-
-			if (method == 'GET' || method == 'HEAD') {
-				xhr.send();
-			} else {
-				switch (sendDataType) {
-					case 'form-data':
-						xhr.send(data);
-						break;
-					case 'raw':
-						xhr.send(data);
-						break;
-					case 'json':
-						xhr.send(JSON.stringify(data));
-						break;
-					default:
-						xhr.send(data);
-				}
-			}
-
-			var xhrPromise = new Promise(function (resolve, reject) {
-				xhr.onreadystatechange = function () {
-					if (xhr.readyState !== 4) {
-						reject({ xhr_status: xhr.status, info: "readyState Error" });
-						return;
-					}
-					if (xhr.status == 0) {
-						reject({ xhr_status: xhr.status, info: "timeout" });
-						return;
-					}
-					var rptext = typeof xhr.responseText === 'string' && xhr.responseText !== '' ? JSON.parse(xhr.responseText) : xhr.responseText;
-					var header_array = xhr.getAllResponseHeaders().toLowerCase().replace(/\n/g, '||').replace(/\|\|$/, '').split('||');
-					var headers_obj = {};
-					for (var i = 0; i < header_array.length; i++) {
-						var obj_item = header_array[i].split(": ");
-						headers_obj[obj_item[0]] = obj_item[1];
-					}
-
-					rptext = Object.assign({}, { headers: headers_obj, body: rptext, xhr_status: xhr.status, outside_data: _this.options.outside_data });
-					resolve(rptext);
-				};
-			});
-
-			return xhrPromise;
-		}
-	}, {
-		key: 'get',
-		value: function get() {
-			var _url = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
-
-			var _options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
-			this.options = Object.assign({}, this.def_opts, _options, { url: _url, method: 'GET' });
-
-			return this.request();
-		}
-	}, {
-		key: 'post',
-		value: function post() {
-			var _url = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
-
-			var _options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
-			this.options = Object.assign({}, this.def_opts, _options, { url: _url, method: 'POST' });
-
-			return this.request();
-		}
-	}, {
-		key: 'put',
-		value: function put() {
-			var _url = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
-
-			var _options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
-			this.options = Object.assign({}, this.def_opts, _options, { url: _url, method: 'PUT' });
-
-			return this.request();
-		}
-	}, {
-		key: 'delete',
-		value: function _delete() {
-			var _url = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
-
-			var _options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
-			this.options = Object.assign({}, this.def_opts, _options, { url: _url, method: 'DELETE' });
-
-			return this.request();
-		}
-	}]);
-
-	return xhres6;
-}();
-
-exports.default = xhres6;
 
 /***/ }),
 /* 3 */
@@ -9919,7 +9959,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _vue = __webpack_require__(1);
+var _vue = __webpack_require__(2);
 
 var _vue2 = _interopRequireDefault(_vue);
 
@@ -10036,7 +10076,7 @@ Object.defineProperty(exports, "__esModule", {
 	value: true
 });
 
-var _vue = __webpack_require__(1);
+var _vue = __webpack_require__(2);
 
 var _vue2 = _interopRequireDefault(_vue);
 
@@ -10044,7 +10084,7 @@ var _vuex = __webpack_require__(18);
 
 var _vuex2 = _interopRequireDefault(_vuex);
 
-var _xhres = __webpack_require__(2);
+var _xhres = __webpack_require__(1);
 
 var _xhres2 = _interopRequireDefault(_xhres);
 
@@ -10168,7 +10208,11 @@ if(false) {
 "use strict";
 
 
-var _vue = __webpack_require__(1);
+var _xhres = __webpack_require__(1);
+
+var _xhres2 = _interopRequireDefault(_xhres);
+
+var _vue = __webpack_require__(2);
 
 var _vue2 = _interopRequireDefault(_vue);
 
@@ -10334,12 +10378,13 @@ exports.default = {
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-
-var _xhres = __webpack_require__(2);
-
-var _xhres2 = _interopRequireDefault(_xhres);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+//
+//
+//
+//
+//
+//
+//
 
 exports.default = {
   data: function data() {
@@ -10358,7 +10403,7 @@ exports.default = {
     uploadFile: function uploadFile(_file) {
       var _this = this;
 
-      var xhr = new _xhres2.default();
+      var xhr = new xhres6();
       // let p = this;
       xhr.put('http://localhost/portal/Image', {
         headers: {
@@ -10377,13 +10422,7 @@ exports.default = {
       });
     }
   }
-}; //
-//
-//
-//
-//
-//
-//
+};
 
 /***/ }),
 /* 15 */
@@ -10396,7 +10435,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _xhres = __webpack_require__(2);
+var _xhres = __webpack_require__(1);
 
 var _xhres2 = _interopRequireDefault(_xhres);
 
@@ -10406,7 +10445,9 @@ exports.default = {
   components: {},
   data: function data() {
     return {
-      msg: 'hello vue world'
+      msg: 'hello vue world',
+      listData: [{ name: "item 0", id: 1, checked: false }, { name: "item 1", id: 2, checked: false }, { name: "item 2", id: 3, checked: false }, { name: "item 3", id: 4, checked: false }],
+      listSelectedData: []
     };
   },
   mounted: function mounted() {
@@ -10417,6 +10458,10 @@ exports.default = {
   updated: function updated() {},
 
   methods: {
+    itemTap: function itemTap($event, _item) {
+      _item.checked = !_item.checked;
+      this.listSelectedData = this.listData;
+    },
     testApi: function testApi(_method) {
       var xhr = new _xhres2.default({
         method: _method,
@@ -10430,6 +10475,14 @@ exports.default = {
     }
   }
 }; //
+//
+//
+//
+//
+//
+//
+//
+//
 //
 //
 //
@@ -13881,7 +13934,7 @@ exports = module.exports = __webpack_require__(0)(undefined);
 
 
 // module
-exports.push([module.i, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n", ""]);
+exports.push([module.i, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n", ""]);
 
 // exports
 
@@ -14079,7 +14132,19 @@ module.exports={render:function (){var _vm=this;var _h=_vm.$createElement;var _c
     staticClass: "cntr-p"
   }, [_c('div', {
     staticClass: "t-style cntr-ml"
-  }, [_vm._v("\n\t\t\t" + _vm._s(_vm.msg) + "\n\t\t")]), _vm._v(" "), _c('button', {
+  }, [_vm._v("\n\t\t\t" + _vm._s(_vm.msg) + "\n\t\t")]), _vm._v(" "), _c('div', {
+    staticClass: "cntr-flex"
+  }, [_c('ul', _vm._l((_vm.listData), function(item) {
+    return _c('li', {
+      on: {
+        "click": function($event) {
+          _vm.itemTap($event, item)
+        }
+      }
+    }, [_vm._v(_vm._s(item.name))])
+  })), _vm._v(" "), _c('ul', _vm._l((_vm.listSelectedData), function(item) {
+    return (item.checked == true) ? _c('li', [_vm._v(_vm._s(item.name))]) : _vm._e()
+  }))]), _vm._v(" "), _c('button', {
     staticClass: "btn btn-info",
     on: {
       "click": function($event) {
