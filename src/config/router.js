@@ -30,25 +30,6 @@ import Home from './../pages/home.vue';
 // 		component:resolve => require([page_array[i].url+'.vue'], resolve)
 // 	})
 // }
-// console.log(router_array);
-// const Tabpage = resolve => {
-//   	// require.ensure is Webpack's special syntax for a code-split point.
-// 	require.ensure(['./pages/tabpage.vue'], () => {
-// 		resolve(require('./pages/tabpage.vue'))
-// 	})
-// }
-// const Column0 = resolve => {
-//   	// require.ensure is Webpack's special syntax for a code-split point.
-// 	require.ensure(['./pages/column0.vue'], () => {
-// 		resolve(require('./pages/column0.vue'))
-// 	})
-// }
-// const Column1 = resolve => {
-//   	// require.ensure is Webpack's special syntax for a code-split point.
-// 	require.ensure(['./pages/column1.vue'], () => {
-// 		resolve(require('./pages/column1.vue'))
-// 	})
-// }
 
 // const tmp_url = './pages/member/home';
 // 
@@ -58,6 +39,8 @@ import Home from './../pages/home.vue';
 // 	component:resolve => require([tmp_url+'.vue'], resolve)
 // }]
 
+const prevUrl = '../pages/'
+
 const router = new VueRouter({
 	mode: 'history',
 // 	routes:router_array,
@@ -66,6 +49,11 @@ const router = new VueRouter({
   			path:'/',
   			name:'root',
   			component:Main
+  		},
+  		{
+  			path:'/login',
+  			name:'login',
+  			component:resolve => require([prevUrl+'login.vue'], resolve)
   		},
   		{
   			path:'/home',

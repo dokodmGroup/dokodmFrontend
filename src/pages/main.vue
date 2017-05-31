@@ -6,12 +6,15 @@
 		<button class="btn btn-info" v-on:click="testApi('PUT')">put</button>
 		<button class="btn btn-info" v-on:click="testApi('POST')">post</button>
 		<button class="btn btn-info" v-on:click="testApi('DELETE')">delete</button>
+		
     </div>
 </template>
 
 <script>
+
 // 	import moment from 'moment';
 	import xhres6 from '../public/js/xhres6.js';
+	
     export default {
     	components:{
     	},
@@ -33,11 +36,15 @@
     		testApi(_method){
     			const xhr = new xhres6({
     				method:_method,
-					url:'https://api.dokodm.com/index/Index/index',
+					url:'https://api.dokodm.com/portal/Session',
+// 					url:'https://api.dokodm.com/index/Index/index',
+					sendDataType:'json',
+					data:{
+						id:'1'
+					}
     			});
-    			xhr.then((_rpdata)=>{
-    				console.log(_rpdata.body);
-    			})
+				
+    			
     		}
     		
     	},

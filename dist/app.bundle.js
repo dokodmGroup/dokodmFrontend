@@ -1,6 +1,36 @@
 /******/ (function(modules) { // webpackBootstrap
+/******/ 	// install a JSONP callback for chunk loading
+/******/ 	var parentJsonpFunction = window["webpackJsonp"];
+/******/ 	window["webpackJsonp"] = function webpackJsonpCallback(chunkIds, moreModules, executeModules) {
+/******/ 		// add "moreModules" to the modules object,
+/******/ 		// then flag all "chunkIds" as loaded and fire callback
+/******/ 		var moduleId, chunkId, i = 0, resolves = [], result;
+/******/ 		for(;i < chunkIds.length; i++) {
+/******/ 			chunkId = chunkIds[i];
+/******/ 			if(installedChunks[chunkId]) {
+/******/ 				resolves.push(installedChunks[chunkId][0]);
+/******/ 			}
+/******/ 			installedChunks[chunkId] = 0;
+/******/ 		}
+/******/ 		for(moduleId in moreModules) {
+/******/ 			if(Object.prototype.hasOwnProperty.call(moreModules, moduleId)) {
+/******/ 				modules[moduleId] = moreModules[moduleId];
+/******/ 			}
+/******/ 		}
+/******/ 		if(parentJsonpFunction) parentJsonpFunction(chunkIds, moreModules, executeModules);
+/******/ 		while(resolves.length) {
+/******/ 			resolves.shift()();
+/******/ 		}
+/******/
+/******/ 	};
+/******/
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
+/******/
+/******/ 	// objects to store loaded and loading chunks
+/******/ 	var installedChunks = {
+/******/ 		1: 0
+/******/ 	};
 /******/
 /******/ 	// The require function
 /******/ 	function __webpack_require__(moduleId) {
@@ -26,6 +56,54 @@
 /******/ 		return module.exports;
 /******/ 	}
 /******/
+/******/ 	// This file contains only the entry chunk.
+/******/ 	// The chunk loading function for additional chunks
+/******/ 	__webpack_require__.e = function requireEnsure(chunkId) {
+/******/ 		if(installedChunks[chunkId] === 0) {
+/******/ 			return Promise.resolve();
+/******/ 		}
+/******/
+/******/ 		// a Promise means "currently loading".
+/******/ 		if(installedChunks[chunkId]) {
+/******/ 			return installedChunks[chunkId][2];
+/******/ 		}
+/******/
+/******/ 		// setup Promise in chunk cache
+/******/ 		var promise = new Promise(function(resolve, reject) {
+/******/ 			installedChunks[chunkId] = [resolve, reject];
+/******/ 		});
+/******/ 		installedChunks[chunkId][2] = promise;
+/******/
+/******/ 		// start chunk loading
+/******/ 		var head = document.getElementsByTagName('head')[0];
+/******/ 		var script = document.createElement('script');
+/******/ 		script.type = 'text/javascript';
+/******/ 		script.charset = 'utf-8';
+/******/ 		script.async = true;
+/******/ 		script.timeout = 120000;
+/******/
+/******/ 		if (__webpack_require__.nc) {
+/******/ 			script.setAttribute("nonce", __webpack_require__.nc);
+/******/ 		}
+/******/ 		script.src = __webpack_require__.p + "" + chunkId + ".bundle.js";
+/******/ 		var timeout = setTimeout(onScriptComplete, 120000);
+/******/ 		script.onerror = script.onload = onScriptComplete;
+/******/ 		function onScriptComplete() {
+/******/ 			// avoid mem leaks in IE.
+/******/ 			script.onerror = script.onload = null;
+/******/ 			clearTimeout(timeout);
+/******/ 			var chunk = installedChunks[chunkId];
+/******/ 			if(chunk !== 0) {
+/******/ 				if(chunk) {
+/******/ 					chunk[1](new Error('Loading chunk ' + chunkId + ' failed.'));
+/******/ 				}
+/******/ 				installedChunks[chunkId] = undefined;
+/******/ 			}
+/******/ 		};
+/******/ 		head.appendChild(script);
+/******/
+/******/ 		return promise;
+/******/ 	};
 /******/
 /******/ 	// expose the modules object (__webpack_modules__)
 /******/ 	__webpack_require__.m = modules;
@@ -61,6 +139,9 @@
 /******/
 /******/ 	// __webpack_public_path__
 /******/ 	__webpack_require__.p = "";
+/******/
+/******/ 	// on error function for async loading
+/******/ 	__webpack_require__.oe = function(err) { console.error(err); throw err; };
 /******/
 /******/ 	// Load entry module and return exports
 /******/ 	return __webpack_require__(__webpack_require__.s = 11);
@@ -8993,35 +9074,32 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 // XMLHttpRequest with Promise and ES6 syntax
 // Author by AquirJan, wing.free0@gmail.com
 // create at 8-2-2016
-// last modify at 3-30-2017
-// version 1.0.7;
-// commit : fix sendDataType default type;
+// last modify at 5-18-2017
+// version 1.0.8;
+// commit : modify the return reject position;
 
 var xhres6 = function () {
 	function xhres6(_options) {
 		_classCallCheck(this, xhres6);
 
-		this.d_options = {
+		this.def_opts = {
 			method: "POST",
 			headers: {},
 			data: {},
-			sendDataType: 'raw', //xhr send data type
+			sendDataType: 'json', //xhr send data type
 			async: true,
-			url: '/',
+			url: '',
 			resDataType: '', //response data type
-			// 			return_xhr:false,
 			timeout: 10000,
-
-			// 			files:[],
 			outside_data: {}
 		};
 
-		this.version = '1.0.7';
+		this.version = '1.0.8';
 
 		this.xhr = new XMLHttpRequest();
 
 		if (_options && (typeof _options === 'undefined' ? 'undefined' : _typeof(_options)) === 'object') {
-			this.options = Object.assign({}, this.d_options, _options);
+			this.options = Object.assign({}, this.def_opts, _options);
 			return this.request();
 		} else {
 			return this;
@@ -9055,10 +9133,6 @@ var xhres6 = function () {
 		value: function request() {
 			var _this = this;
 
-			// 		if(this.options.sendDataType != 'raw' && this.options.sendDataType != 'form-data' && this.options.sendDataType!= 'json' ){
-			// 			console.warn('invalidate sendDataType value, I will use default (json) \n sendDataType = [form-data | json]');
-			// 			this.options.sendDataType = 'raw';
-			// 		}
 			if (this.options.method == 'GET') {
 				var reg = /(\[)(.*)(\])/;
 				for (var key in this.options.data) {
@@ -9129,9 +9203,13 @@ var xhres6 = function () {
 
 			var xhrPromise = new Promise(function (resolve, reject) {
 				xhr.onreadystatechange = function () {
-					if (xhr.readyState !== 4) return;
+					if (xhr.readyState !== 4) {
+						reject({ xhr_status: xhr.status, info: "readyState Error" });
+						return;
+					}
 					if (xhr.status == 0) {
-						return reject({ xhr_status: xhr.status, info: "timeout" });
+						reject({ xhr_status: xhr.status, info: "timeout" });
+						return;
 					}
 					var rptext = typeof xhr.responseText === 'string' && xhr.responseText !== '' ? JSON.parse(xhr.responseText) : xhr.responseText;
 					var header_array = xhr.getAllResponseHeaders().toLowerCase().replace(/\n/g, '||').replace(/\|\|$/, '').split('||');
@@ -9142,7 +9220,7 @@ var xhres6 = function () {
 					}
 
 					rptext = Object.assign({}, { headers: headers_obj, body: rptext, xhr_status: xhr.status, outside_data: _this.options.outside_data });
-					return resolve(rptext);
+					resolve(rptext);
 				};
 			});
 
@@ -9155,7 +9233,7 @@ var xhres6 = function () {
 
 			var _options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
-			this.options = Object.assign({}, this.d_options, _options, { url: _url, method: 'GET' });
+			this.options = Object.assign({}, this.def_opts, _options, { url: _url, method: 'GET' });
 
 			return this.request();
 		}
@@ -9166,7 +9244,7 @@ var xhres6 = function () {
 
 			var _options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
-			this.options = Object.assign({}, this.d_options, _options, { url: _url, method: 'POST' });
+			this.options = Object.assign({}, this.def_opts, _options, { url: _url, method: 'POST' });
 
 			return this.request();
 		}
@@ -9177,7 +9255,7 @@ var xhres6 = function () {
 
 			var _options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
-			this.options = Object.assign({}, this.d_options, _options, { url: _url, method: 'PUT' });
+			this.options = Object.assign({}, this.def_opts, _options, { url: _url, method: 'PUT' });
 
 			return this.request();
 		}
@@ -9188,7 +9266,7 @@ var xhres6 = function () {
 
 			var _options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
-			this.options = Object.assign({}, this.d_options, _options, { url: _url, method: 'DELETE' });
+			this.options = Object.assign({}, this.def_opts, _options, { url: _url, method: 'DELETE' });
 
 			return this.request();
 		}
@@ -9887,25 +9965,6 @@ _vue2.default.use(_vueRouter2.default);
 // 		component:resolve => require([page_array[i].url+'.vue'], resolve)
 // 	})
 // }
-// console.log(router_array);
-// const Tabpage = resolve => {
-//   	// require.ensure is Webpack's special syntax for a code-split point.
-// 	require.ensure(['./pages/tabpage.vue'], () => {
-// 		resolve(require('./pages/tabpage.vue'))
-// 	})
-// }
-// const Column0 = resolve => {
-//   	// require.ensure is Webpack's special syntax for a code-split point.
-// 	require.ensure(['./pages/column0.vue'], () => {
-// 		resolve(require('./pages/column0.vue'))
-// 	})
-// }
-// const Column1 = resolve => {
-//   	// require.ensure is Webpack's special syntax for a code-split point.
-// 	require.ensure(['./pages/column1.vue'], () => {
-// 		resolve(require('./pages/column1.vue'))
-// 	})
-// }
 
 // const tmp_url = './pages/member/home';
 // 
@@ -9915,6 +9974,8 @@ _vue2.default.use(_vueRouter2.default);
 // 	component:resolve => require([tmp_url+'.vue'], resolve)
 // }]
 
+var prevUrl = '../pages/';
+
 var router = new _vueRouter2.default({
   mode: 'history',
   // 	routes:router_array,
@@ -9922,6 +9983,12 @@ var router = new _vueRouter2.default({
     path: '/',
     name: 'root',
     component: _main2.default
+  }, {
+    path: '/login',
+    name: 'login',
+    component: function component(resolve) {
+      return __webpack_require__.e/* require */(0).then(function() { var __WEBPACK_AMD_REQUIRE_ARRAY__ = [!(function webpackMissingModule() { var e = new Error("Cannot find module \".\""); e.code = 'MODULE_NOT_FOUND'; throw e; }())]; (resolve.apply(null, __WEBPACK_AMD_REQUIRE_ARRAY__));}.bind(this)).catch(__webpack_require__.oe);
+    }
   }, {
     path: '/home',
     name: 'home',
@@ -10289,8 +10356,11 @@ exports.default = {
       this.uploadFile(file);
     },
     uploadFile: function uploadFile(_file) {
+      var _this = this;
+
       var xhr = new _xhres2.default();
-      xhr.put('http://dev.yimentong.sj33333.com/index.php/v3/admin/Image', {
+      // let p = this;
+      xhr.put('http://localhost/portal/Image', {
         headers: {
           'Content-Type': 'multipart/form-data;'
         },
@@ -10302,6 +10372,8 @@ exports.default = {
             xhr_status = _rpdata.xhr_status,
             xhr = _rpdata.xhr;
         // body this is server response data;
+
+        _this.$refs.files.value = '';
       });
     }
   }
@@ -10348,10 +10420,12 @@ exports.default = {
     testApi: function testApi(_method) {
       var xhr = new _xhres2.default({
         method: _method,
-        url: 'https://api.dokodm.com/index/Index/index'
-      });
-      xhr.then(function (_rpdata) {
-        console.log(_rpdata.body);
+        url: 'https://api.dokodm.com/portal/Session',
+        // 					url:'https://api.dokodm.com/index/Index/index',
+        sendDataType: 'json',
+        data: {
+          id: '1'
+        }
       });
     }
   }
@@ -10366,6 +10440,8 @@ exports.default = {
 //
 //
 //
+//
+
 
 // 	import moment from 'moment';
 
@@ -13805,7 +13881,7 @@ exports = module.exports = __webpack_require__(0)(undefined);
 
 
 // module
-exports.push([module.i, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n", ""]);
+exports.push([module.i, "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n", ""]);
 
 // exports
 
