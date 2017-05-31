@@ -11,3 +11,5 @@ Thumbs.db
 # some other files #
 ######################
 .babelrc
+src
+src/*
