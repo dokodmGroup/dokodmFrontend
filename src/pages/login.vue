@@ -1,7 +1,7 @@
 <template>
 	<div class="cntr-p" >	
 		<div class="login-wrap">
-			
+			login page
 		</div>
     </div>
 </template>
@@ -16,7 +16,7 @@
     	},
     	data(){
     		return {
-    			msg:'hello vue world'
+    			// msg:'hello vue world'
     		}
     	},
     	mounted(){
