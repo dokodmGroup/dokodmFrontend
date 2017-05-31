@@ -16,7 +16,7 @@
     	},
     	data(){
     		return {
-//     			msg:'hello vue world'
+    			msg:'hello vue world'
     		}
     	},
     	mounted(){
