@@ -6,7 +6,6 @@
 </template>
 
 <script>
-	import xhres6 from '../public/js/xhres6.js'
     export default {
     	data(){
     		return {
