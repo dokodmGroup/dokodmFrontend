@@ -1,4 +1,5 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const FaviconsWebpackPlugin = require('favicons-webpack-plugin');
 const webpack = require('webpack');
 const path = require('path');
 const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
@@ -109,9 +110,42 @@ module.exports = {
 // // 			   return module.context && module.context.indexOf('node_modules') !== -1;
 // // 			}
 // 		}),
+		// new HtmlWebpackPlugin(),
 		new HtmlWebpackPlugin({
-			title: 'Dokodm web',
-      		filename: './src/public/index.html'
+      		template: './src/public/index.html',
+		}),
+		new FaviconsWebpackPlugin({
+			// Your source logo
+			logo: './src/public/favicon/logo.png',
+			// The prefix for all image files (might be a folder or a name)
+			prefix: '',
+			// Emit all stats of the generated icons
+			// emitStats: false,
+			// The name of the json containing all favicon information
+			// statsFilename: './src/public/favicon/manifest.json',
+			// Generate a cache file with control hashes and
+			// don't rebuild the favicons until those hashes change
+			// persistentCache: true,
+			// Inject the html into the html-webpack-plugin
+			// inject: true,
+			// favicon background color (see https://github.com/haydenbleasel/favicons#usage)
+			// background: '#fff',
+			// favicon app title (see https://github.com/haydenbleasel/favicons#usage)
+			// title: 'Dokodm web',
+
+			// which icons should be generated (see https://github.com/haydenbleasel/favicons#usage)
+			icons: {
+				android: false,
+				appleIcon: true,
+				appleStartup: false,
+				coast: false,
+				favicons: false,
+				firefox: false,
+				opengraph: false,
+				twitter: false,
+				yandex: false,
+				windows: false
+			}
 		})
 // 		new UglifyJSPlugin(),
 //         new webpack.optimize.DedupePlugin(),
